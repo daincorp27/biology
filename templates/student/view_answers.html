@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Question Answers - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('student_questions') }}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Back to Questions
+    </a>
+</div>
+
+<!-- Original Question -->
+<div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">{{ question.title }}</h4>
+    </div>
+    <div class="card-body">
+        <p class="card-text">{{ question.content }}</p>
+        
+        {% if question.attachment_path %}
+        <div class="mt-3">
+            {% if question.question_type == 'image' or 'image' in question.question_type %}
+                <img src="{{ url_for('static', filename=question.attachment_path) }}" class="img-fluid" style="max-height: 300px;">
+            {% elif question.question_type == 'voice' or 'voice' in question.question_type %}
+                <audio controls class="w-100">
+                    <source src="{{ url_for('static', filename=question.attachment_path) }}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <hr>
+        <small class="text-muted">
+            <i class="bi bi-clock"></i> Asked on {{ question.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+            {% if question.is_resolved %}
+                | <span class="badge bg-success"><i class="bi bi-check-circle"></i> Resolved</span>
+            {% endif %}
+        </small>
+    </div>
+</div>
+
+<!-- Answers from Teachers -->
+<h4 class="mb-3">
+    <i class="bi bi-chat-dots"></i> Answers from Teachers ({{ answers|length }})
+</h4>
+
+{% if answers %}
+    {% for answer in answers %}
+    <div class="card mb-3 border-success">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-person-circle"></i> {{ answer.teacher.full_name }}
+                    <span class="badge bg-success">Teacher</span>
+                </h6>
+                <small class="text-muted">
+                    {{ answer.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                </small>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="card-text">{{ answer.content }}</p>
+            
+            {% if answer.attachment_path %}
+            <div class="mt-3">
+                {% if answer.answer_type == 'image' or 'image' in answer.answer_type %}
+                    <img src="{{ url_for('static', filename=answer.attachment_path) }}" class="img-fluid" style="max-height: 300px;">
+                {% elif answer.answer_type == 'voice' or 'voice' in answer.answer_type %}
+                    <audio controls class="w-100">
+                        <source src="{{ url_for('static', filename=answer.attachment_path) }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="mt-3">
+                {% if answer.answer_type != 'text' %}
+                    <span class="badge bg-info">
+                        {% if 'voice' in answer.answer_type %}
+                            <i class="bi bi-mic"></i> Voice
+                        {% endif %}
+                        {% if 'image' in answer.answer_type %}
+                            <i class="bi bi-image"></i> Image
+                        {% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-hourglass"></i> <strong>No answers yet.</strong> Teachers will see your question in their inbox and can respond anytime!
+    </div>
+{% endif %}
+
+<div class="mt-4 p-4 bg-light rounded">
+    <h6><i class="bi bi-lightbulb"></i> What's happening?</h6>
+    <ul class="mb-0">
+        <li>Each teacher sees your question independently</li>
+        <li>They can provide their own perspective and answer</li>
+        <li>You'll get notified when teachers reply</li>
+        <li>Multiple answers help you understand topics from different angles</li>
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}Ask Teachers - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-chat-left-quote"></i> Ask Your Teachers</h2>
+    <a href="{{ url_for('student_questions') }}" class="btn btn-outline-primary">
+        <i class="bi bi-inbox"></i> My Questions & Answers
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="bi bi-lightbulb"></i> <strong>How it works:</strong> Post your biology question and all teachers will see it in their inbox. Each teacher can provide their own answer!
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Post a Question</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Question Title *</label>
+                        <input type="text" class="form-control form-control-lg" id="title" name="title" required placeholder="e.g., How does photosynthesis work?">
+                        <small class="text-muted">Be specific and clear</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Question Details *</label>
+                        <textarea class="form-control" id="content" name="content" rows="6" required placeholder="Provide context, what you've already tried, what you're confused about..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Question Type</label>
+                        <div class="btn-group d-flex" role="group">
+                            <input type="radio" class="btn-check" name="question_type" id="type_text" value="text" checked>
+                            <label class="btn btn-outline-primary" for="type_text">
+                                <i class="bi bi-type"></i> Text Only
+                            </label>
+
+                            <input type="radio" class="btn-check" name="question_type" id="type_image" value="image">
+                            <label class="btn btn-outline-primary" for="type_image">
+                                <i class="bi bi-image"></i> + Image
+                            </label>
+
+                            <input type="radio" class="btn-check" name="question_type" id="type_voice" value="voice">
+                            <label class="btn btn-outline-primary" for="type_voice">
+                                <i class="bi bi-mic"></i> + Voice
+                            </label>
+
+                            <input type="radio" class="btn-check" name="question_type" id="type_mixed" value="mixed">
+                            <label class="btn btn-outline-primary" for="type_mixed">
+                                <i class="bi bi-collection"></i> + Both
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Live Capture</label>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <button type="button" class="btn btn-outline-primary" id="startRecordBtn">
+                                <i class="bi bi-mic-fill"></i> Record Voice
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="stopRecordBtn" disabled>
+                                <i class="bi bi-stop-circle"></i> Stop
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="cameraBtn">
+                                <i class="bi bi-camera"></i> Capture Photo
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-2">Use live recording or camera capture to send your question directly to teachers.</small>
+                    </div>
+
+                    <div id="liveCapturePreview" class="mb-4">
+                        <div id="audioPreview"></div>
+                        <div id="imagePreview" class="mt-3"></div>
+                        <video id="cameraPreview" class="d-none w-100 rounded border mt-3" autoplay muted playsinline></video>
+                        <canvas id="captureCanvas" class="d-none"></canvas>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="attachment" class="form-label">Attachment (Optional)</label>
+                        <input type="file" class="form-control" id="attachment" name="attachment" accept="image/*,audio/*">
+                        <small class="text-muted">Upload an image, diagram, or voice recording to support your question</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-send"></i> Post Question to All Teachers
+                        </button>
+                        <a href="{{ url_for('student_questions') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    const attachmentInput = document.getElementById('attachment');
+    const startRecordBtn = document.getElementById('startRecordBtn');
+    const stopRecordBtn = document.getElementById('stopRecordBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const audioPreview = document.getElementById('audioPreview');
+    const imagePreview = document.getElementById('imagePreview');
+    const cameraPreview = document.getElementById('cameraPreview');
+    const captureCanvas = document.getElementById('captureCanvas');
+
+    let mediaRecorder = null;
+    let mediaStream = null;
+    let audioChunks = [];
+    let recordedBlob = null;
+    let capturedBlob = null;
+    let cameraActive = false;
+
+    function setQuestionType(type) {
+        const input = document.querySelector(`input[name="question_type"][value="${type}"]`);
+        if (input) {
+            input.checked = true;
+        }
+    }
+
+    function clearAttachmentInput() {
+        attachmentInput.value = '';
+    }
+
+    function showAudioPreview(blob) {
+        audioPreview.innerHTML = '<p class="mb-2"><strong>Voice note ready:</strong></p>';
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = URL.createObjectURL(blob);
+        audio.className = 'w-100';
+        audioPreview.appendChild(audio);
+    }
+
+    function showImagePreview(blob) {
+        imagePreview.innerHTML = '<p class="mb-2"><strong>Image captured:</strong></p>';
+        const image = document.createElement('img');
+        image.src = URL.createObjectURL(blob);
+        image.className = 'img-fluid rounded border';
+        image.alt = 'Captured photo';
+        imagePreview.appendChild(image);
+    }
+
+    async function stopCameraStream() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            mediaStream = null;
+        }
+        cameraPreview.srcObject = null;
+        cameraPreview.classList.add('d-none');
+        cameraActive = false;
+        cameraBtn.innerHTML = '<i class="bi bi-camera"></i> Capture Photo';
+    }
+
+    startRecordBtn.addEventListener('click', async function () {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            return alert('Audio recording is not supported by your browser.');
+        }
+
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(mediaStream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = event => {
+                if (event.data && event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+            mediaRecorder.onstop = () => {
+                recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                showAudioPreview(recordedBlob);
+                clearAttachmentInput();
+                setQuestionType('voice');
+            };
+            mediaRecorder.start();
+            startRecordBtn.disabled = true;
+            stopRecordBtn.disabled = false;
+            audioPreview.innerHTML = '<div class="alert alert-warning">Recording... speak now and click Stop when finished.</div>';
+            if (cameraActive) {
+                await stopCameraStream();
+            }
+        } catch (error) {
+            alert('Unable to access the microphone. Please allow microphone access and try again.');
+        }
+    });
+
+    stopRecordBtn.addEventListener('click', function () {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        startRecordBtn.disabled = false;
+        stopRecordBtn.disabled = true;
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            mediaStream = null;
+        }
+    });
+
+    cameraBtn.addEventListener('click', async function () {
+        if (!cameraActive) {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                return alert('Camera capture is not supported by your browser.');
+            }
+
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                cameraPreview.srcObject = mediaStream;
+                cameraPreview.classList.remove('d-none');
+                cameraActive = true;
+                cameraBtn.innerHTML = '<i class="bi bi-camera-fill"></i> Take Photo';
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+            } catch (error) {
+                alert('Unable to access the camera. Please allow camera access and try again.');
+            }
+            return;
+        }
+
+        if (!cameraPreview.videoWidth || !cameraPreview.videoHeight) {
+            return alert('Camera preview is not ready yet.');
+        }
+
+        captureCanvas.width = cameraPreview.videoWidth;
+        captureCanvas.height = cameraPreview.videoHeight;
+        const ctx = captureCanvas.getContext('2d');
+        ctx.drawImage(cameraPreview, 0, 0, captureCanvas.width, captureCanvas.height);
+        captureCanvas.toBlob(async blob => {
+            if (!blob) {
+                return alert('Unable to capture the image.');
+            }
+            capturedBlob = blob;
+            showImagePreview(capturedBlob);
+            clearAttachmentInput();
+            setQuestionType('image');
+            await stopCameraStream();
+        }, 'image/png');
+    });
+
+    form.addEventListener('submit', async function (event) {
+        if (!recordedBlob && !capturedBlob) {
+            return;
+        }
+
+        event.preventDefault();
+        const data = new FormData(form);
+
+        if (recordedBlob) {
+            const audioFile = new File([recordedBlob], `voice_note_${Date.now()}.webm`, { type: recordedBlob.type });
+            data.set('attachment', audioFile);
+        } else if (capturedBlob) {
+            const imageFile = new File([capturedBlob], `photo_${Date.now()}.png`, { type: capturedBlob.type });
+            data.set('attachment', imageFile);
+        }
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: data,
+                credentials: 'same-origin'
+            });
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+            const text = await response.text();
+            document.open();
+            document.write(text);
+            document.close();
+        } catch (error) {
+            alert('An error occurred while sending your question. Please try again.');
+        }
+    });
+});
+</script>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-8">
+        <div class="card border-success">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Tips for Getting Great Answers</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success"></i> Be specific - vague questions get vague answers</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Show what you've tried - teachers appreciate effort</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Use images for diagrams or complex concepts</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Multiple teachers = multiple perspectives</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Polite questions get faster responses!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Leaderboard - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-trophy"></i> Quiz Leaderboard</h2>
+        <p class="text-muted mb-0">{{ quiz.title }} — {{ quiz.total_points }} points</p>
+    </div>
+    <div>
+        <a href="{{ url_for('quiz_submissions', quiz_id=quiz.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-list-check"></i> Submissions
+        </a>
+        <a href="{{ url_for('course_detail', course_id=quiz.course.id) }}" class="btn btn-outline-success ms-2">
+            <i class="bi bi-arrow-left"></i> Back to Course
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if leaderboard %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Student</th>
+                            <th>Score</th>
+                            <th>Percent</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in leaderboard %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><strong>{{ entry.student.full_name }}</strong></td>
+                            <td>{{ entry.total_score }}/{{ quiz.total_points }}</td>
+                            <td>{{ ((entry.total_score / quiz.total_points) * 100) | round(2) }}%</td>
+                            <td>{{ entry.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center text-muted mb-0">No leaderboard entries yet. Only graded submissions are ranked, so students must submit and the teacher must grade any text or drawing quizzes.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

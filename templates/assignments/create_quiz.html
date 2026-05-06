@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Create Quiz - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-clipboard-plus"></i> Create Biology Quiz</h2>
+    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left"></i> Back to Course
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-book"></i> Course: {{ course.title }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('create_quiz', course_id=course.id) }}" id="quizForm">
+                    <div class="mb-4">
+                        <label for="title" class="form-label">Quiz Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" required placeholder="e.g., Cell Biology Test 1">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="2" placeholder="Brief description of the quiz..."></textarea>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Related Module</label>
+                            <select class="form-select" name="module_id">
+                                <option value="">Choose a module (optional)</option>
+                                {% for module in modules %}
+                                    <option value="{{ module.id }}">{{ module.title }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Choose the module this quiz is built around.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Related Topic</label>
+                            <select class="form-select" name="topic_id">
+                                <option value="">Choose a topic (optional)</option>
+                                {% for topic in topics %}
+                                    <option value="{{ topic.id }}">{{ topic.title }} ({{ topic.module.title }})</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Choose the topic this quiz focuses on.</small>
+                        </div>
+                    </div>
+                    <p class="form-text text-muted mb-4">Choose either a related module or a related topic. Topic selection is more specific and helps keep questions aligned with the curriculum.</p>
+
+                    <div class="mb-4">
+                        <label class="form-label">Quiz Type</label>
+                        <div class="btn-group d-flex" role="group">
+                            <input type="radio" class="btn-check" name="quiz_type" id="type_objective" value="objective" checked>
+                            <label class="btn btn-outline-primary" for="type_objective">
+                                <i class="bi bi-list-check"></i> Objectives
+                            </label>
+
+                            <input type="radio" class="btn-check" name="quiz_type" id="type_qa" value="qa">
+                            <label class="btn btn-outline-primary" for="type_qa">
+                                <i class="bi bi-chat-text"></i> Question & Answer
+                            </label>
+
+                            <input type="radio" class="btn-check" name="quiz_type" id="type_drawing" value="drawing">
+                            <label class="btn btn-outline-primary" for="type_drawing">
+                                <i class="bi bi-pencil-square"></i> Drawing
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="time_limit" class="form-label">Time Limit (minutes)</label>
+                            <input type="number" class="form-control" id="time_limit" name="time_limit" min="0" value="0">
+                            <small class="text-muted">Set 0 for untimed quizzes.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Question Guidance</label>
+                            <p class="form-text text-muted">Objectives are auto-graded. Q&amp;A requires written answers from students. Drawing questions ask students to upload a diagram or sketch.</p>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3"><i class="bi bi-question-circle"></i> Quiz Questions</h5>
+
+                    <div id="questionsContainer"></div>
+
+                    <button type="button" class="btn btn-outline-secondary mb-4" onclick="addQuestion()">
+                        <i class="bi bi-plus-circle"></i> Add Another Question
+                    </button>
+
+                    <input type="hidden" name="question_count" id="question_count" value="0">
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> Create Quiz
+                        </button>
+                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let questionCount = 0;
+const questionsContainer = document.getElementById('questionsContainer');
+const quizTypeInputs = document.querySelectorAll('input[name="quiz_type"]');
+
+function getSelectedQuizType() {
+    return document.querySelector('input[name="quiz_type"]:checked').value;
+}
+
+function addQuestion() {
+    questionCount++;
+    renderQuestions();
+}
+
+function removeQuestion(button) {
+    button.closest('.question-block').remove();
+    updateQuestionCount();
+}
+
+function updateQuestionCount() {
+    const questions = document.querySelectorAll('.question-block');
+    questionCount = questions.length;
+    document.getElementById('question_count').value = questionCount;
+    questions.forEach((block, index) => {
+        block.querySelector('.question-number').textContent = `Question ${index + 1}`;
+        block.querySelector('.question-textarea').name = `question_${index}_text`;
+        block.querySelector('.question-points').name = `question_${index}_points`;
+        const type = getSelectedQuizType();
+        if (type === 'objective') {
+            block.querySelectorAll('.question-option').forEach((field, optIndex) => {
+                field.name = `question_${index}_option_${String.fromCharCode(97 + optIndex)}`;
+            });
+            if (block.querySelector('.question-correct')) {
+                block.querySelector('.question-correct').name = `question_${index}_correct`;
+            }
+        }
+    });
+}
+
+function buildQuestionBlock(index, quizType) {
+    let html = `
+        <div class="question-block mb-4 p-3 border rounded">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <label class="form-label fw-bold mb-0 question-number">Question ${index + 1}</label>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeQuestion(this)">
+                    <i class="bi bi-trash"></i> Remove
+                </button>
+            </div>
+            <div class="mb-3">
+                <textarea class="form-control question-textarea" name="question_${index}_text" rows="2" required placeholder="Enter your biology question here..."></textarea>
+            </div>
+    `;
+
+    if (quizType === 'objective') {
+        html += `
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Option A</label>
+                    <input type="text" class="form-control question-option" name="question_${index}_option_a" required>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Option B</label>
+                    <input type="text" class="form-control question-option" name="question_${index}_option_b" required>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Option C</label>
+                    <input type="text" class="form-control question-option" name="question_${index}_option_c" required>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Option D</label>
+                    <input type="text" class="form-control question-option" name="question_${index}_option_d" required>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label class="form-label small">Correct Answer</label>
+                    <select class="form-select question-correct" name="question_${index}_correct" required>
+                        <option value="">Select correct option...</option>
+                        <option value="A">Option A</option>
+                        <option value="B">Option B</option>
+                        <option value="C">Option C</option>
+                        <option value="D">Option D</option>
+                    </select>
+                </div>
+        `;
+    } else if (quizType === 'drawing') {
+        html += `
+            <div class="alert alert-secondary">
+                Students will upload a drawing or diagram when they take this question.
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="alert alert-secondary">
+                Students will write a clear answer when they take this quiz.
+            </div>
+        `;
+    }
+
+    html += `
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label class="form-label small">Points</label>
+                    <input type="number" class="form-control question-points" name="question_${index}_points" value="1" min="1" required>
+                </div>
+            </div>
+        </div>
+    `;
+    return html;
+}
+
+function renderQuestions() {
+    const quizType = getSelectedQuizType();
+    const currentCount = questionCount;
+    questionsContainer.innerHTML = '';
+    for (let i = 0; i < currentCount; i++) {
+        questionsContainer.insertAdjacentHTML('beforeend', buildQuestionBlock(i, quizType));
+    }
+    document.getElementById('question_count').value = currentCount;
+}
+
+quizTypeInputs.forEach(input => {
+    input.addEventListener('change', function () {
+        renderQuestions();
+    });
+});
+
+// Initialize with one question block
+addQuestion();
+</script>
+{% endblock %}

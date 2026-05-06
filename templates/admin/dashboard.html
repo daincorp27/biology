@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-people biology-icon mb-3"></i>
+                <h3>{{ total_users }}</h3>
+                <p class="text-muted mb-0">Total Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-book biology-icon mb-3"></i>
+                <h3>{{ total_courses }}</h3>
+                <p class="text-muted mb-0">Total Courses</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-person-check biology-icon mb-3"></i>
+                <h3>{{ total_enrollments }}</h3>
+                <p class="text-muted mb-0">Active Enrollments</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person-plus"></i> Recent Enrollment Requests</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_enrollments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Course</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in recent_enrollments %}
+                                    <tr>
+                                        <td>{{ enrollment.student.full_name }}</td>
+                                        <td>{{ enrollment.course.title }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('admin_approve_enrollment', enrollment_id=enrollment.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('admin_decline_enrollment', enrollment_id=enrollment.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-danger">Decline</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No pending enrollment requests.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('create_course') }}" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle"></i> Create New Course
+                    </a>
+                    <a href="{{ url_for('admin_create_notification') }}" class="btn btn-outline-success">
+                        <i class="bi bi-bell"></i> Create Notification
+                    </a>
+                    <a href="{{ url_for('upload_library_resource') }}" class="btn btn-outline-success">
+                        <i class="bi bi-upload"></i> Upload Library Resource
+                    </a>
+                    <a href="{{ url_for('courses_list') }}" class="btn btn-outline-success">
+                        <i class="bi bi-list"></i> View All Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Library Resource - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Library Resource</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Resource Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" required value="{{ resource.title }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4">{{ resource.description }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="author" class="form-label">Author</label>
+                            <input type="text" class="form-control" id="author" name="author" value="{{ resource.author }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags</label>
+                            <input type="text" class="form-control" id="tags" name="tags" value="{{ resource.tags }}">
+                            <small class="text-muted">Comma-separated tags</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Current File</label>
+                            <div class="input-group mb-2">
+                                <span class="form-control">{{ resource.file_name }}</span>
+                                <a href="{{ url_for('view_library_resource', resource_id=resource.id) }}" class="btn btn-outline-secondary">Preview</a>
+                            </div>
+                            <small class="text-muted">Upload a new file below to replace the existing one.</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="file" class="form-label">Replace File (optional)</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.mp3,.wav,.jpg,.jpeg,.png,.gif">
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                            <a href="{{ url_for('library_index') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

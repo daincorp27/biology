@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Viewing: {{ resource.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ---------------------------------
+   OVERRIDE BASE LAYOUT (CRITICAL)
+---------------------------------- */
+.main-content,
+.main-content > .container {
+    all: unset;
+}
+
+/* ---------------------------------
+   FULLSCREEN VIEWER
+---------------------------------- */
+.viewer-root {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    z-index: 9999;
+}
+
+/* ---------------------------------
+   PDF (THIS IS THE KEY FIX)
+---------------------------------- */
+.viewer-root iframe {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    display: block;
+    background: #000;
+}
+
+/* ---------------------------------
+   IMAGES & VIDEO
+---------------------------------- */
+.viewer-root img,
+.viewer-root video {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+}
+
+/* ---------------------------------
+   HEADER
+---------------------------------- */
+.viewer-header {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+
+    background: rgba(255,255,255,0.95);
+    padding: 6px 12px;
+    border-radius: 999px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* MOBILE */
+@media (max-width: 576px) {
+    .viewer-header span {
+        max-width: 50vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.85rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="viewer-root" oncontextmenu="return false;">
+
+    <div class="viewer-header">
+        <a href="{{ url_for('library_index') }}"
+           class="btn btn-sm btn-secondary">
+            ✕
+        </a>
+        <span>{{ resource.title }}</span>
+    </div>
+
+    {% if resource.file_extension == 'pdf' %}
+        <iframe
+            src="{{ url_for('serve_library_file', filename=resource.file_name, token=preview_token) }}#view=FitH&toolbar=0" height="1000" width="1000"
+        ></iframe>
+
+    {% elif resource.file_extension in ['png','jpg','jpeg','gif','svg'] %}
+        <img src="{{ url_for('serve_library_file', filename=resource.file_name, token=preview_token) }}">
+
+    {% elif resource.file_extension in ['mp4','webm'] %}
+        <video controls playsinline
+               src="{{ url_for('serve_library_file', filename=resource.file_name, token=preview_token) }}"></video>
+
+    {% else %}
+        <div style="color:white;display:flex;align-items:center;justify-content:center;height:100vh;">
+            <div>
+                <h3>Preview Not Available</h3>
+                <a class="btn btn-primary"
+                   href="{{ url_for('view_library_resource', resource_id=resource.id) }}">
+                    Back to Preview
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

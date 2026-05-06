@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} - The Eagle Biology Class{% endblock %}
+
+{% block head %}
+<style>
+    /* ===============================
+       GLOBAL
+    =============================== */
+    body {
+        background-color: #0b1220;
+        color: #e5e7eb;
+    }
+
+    /* ===============================
+       SIDEBAR
+    =============================== */
+    .lesson-sidebar {
+        height: calc(100vh - 100px);
+        overflow-y: auto;
+        border-right: 1px solid rgba(255,255,255,0.15);
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+    }
+
+    .accordion-button {
+        background: transparent;
+        color: #e5e7eb !important;
+        font-size: 0.95rem;
+    }
+
+    .accordion-button:not(.collapsed) {
+        color: #2dd4bf !important;
+    }
+
+    .lesson-sidebar .text-muted.small {
+        color: #94a3b8 !important;
+        font-weight: 600;
+    }
+
+    .curriculum-item {
+        border-radius: 6px;
+        transition: 0.2s;
+        color: #cbd5e1;
+    }
+
+    .curriculum-item:hover {
+        background: rgba(255,255,255,0.08);
+    }
+
+    .curriculum-item.active {
+        background: rgba(45, 212, 191, 0.18);
+        border-left: 4px solid #2dd4bf;
+    }
+
+    .curriculum-item i {
+        font-size: 1.1rem;
+    }
+
+    .text-teal {
+        color: #2dd4bf !important;
+    }
+
+    .text-gray-300 {
+        color: #cbd5e1 !important;
+    }
+
+    .badge.bg-warning {
+        background-color: #facc15 !important;
+        color: #1f2937 !important;
+        font-weight: 700;
+    }
+
+    /* ===============================
+       MAIN CONTENT
+    =============================== */
+    .lesson-content {
+        max-width: 900px;
+        margin: 0 auto;
+        color: #e5e7eb;
+    }
+
+    .breadcrumb-item a {
+        color: #94a3b8;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #e5e7eb;
+    }
+
+    .breadcrumb-item.active {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .lesson-content p.text-muted {
+        color: #9ca3af !important;
+    }
+
+    /* ===============================
+       VIDEO
+    =============================== */
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        background: #020617;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .video-container iframe,
+    .video-container video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    /* ===============================
+       LAB BANNER
+    =============================== */
+    .lab-banner {
+        background: linear-gradient(90deg, #7c3aed, #5b21b6);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(124, 58, 237, 0.5);
+        box-shadow: 0 10px 25px rgba(124,58,237,0.35);
+    }
+
+    .lab-banner h5 {
+        color: #ffffff;
+    }
+
+    .lab-banner small {
+        color: #e0e7ff;
+    }
+
+    /* ===============================
+       RICH TEXT CONTENT
+    =============================== */
+    .rich-text h1,
+    .rich-text h2,
+    .rich-text h3 {
+        margin-top: 1.5rem;
+        color: #5eead4;
+        font-weight: 700;
+    }
+
+    .rich-text p {
+        line-height: 1.7;
+        color: #e5e7eb;
+        font-size: 1.05rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .rich-text ul {
+        padding-left: 20px;
+        color: #e5e7eb;
+    }
+
+    .rich-text ul li {
+        margin-bottom: 0.5rem;
+    }
+
+    .rich-text a {
+        color: #38bdf8;
+        text-decoration: underline;
+    }
+
+    .rich-text a:hover {
+        color: #7dd3fc;
+    }
+
+    /* ===============================
+       IMAGES
+    =============================== */
+    .card.bg-dark {
+        background-color: #020617 !important;
+    }
+
+    .card img {
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* ===============================
+       ACTION BUTTONS
+    =============================== */
+    .btn {
+        font-weight: 600;
+    }
+
+    .btn-outline-secondary {
+        color: #e5e7eb;
+        border-color: #64748b;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #334155;
+    }
+
+    .btn-primary {
+        background-color: #2563eb;
+        border-color: #2563eb;
+    }
+
+    .btn-success {
+        background-color: #16a34a;
+        border-color: #16a34a;
+    }
+
+    /* ===============================
+       MOBILE
+    =============================== */
+    @media (max-width: 768px) {
+        .lesson-content h1 {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        
+        <!-- LEFT SIDEBAR: Curriculum Navigation -->
+        <div class="col-md-4 col-lg-3 d-none d-md-block lesson-sidebar p-3">
+            <div class="mb-4">
+                <a href="{{ url_for('course_detail', course_id=course.id) }}" class="text-decoration-none text-white d-flex align-items-center mb-3">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Course
+                </a>
+                <h6 class="text-uppercase text-muted small fw-bold">Course</h6>
+                <h5 class="text-white mb-0">{{ course.title }}</h5>
+            </div>
+
+            <div class="accordion accordion-flush" id="sidebarAccordion">
+                {% for module in modules %}
+                <div class="accordion-item bg-transparent border-0 mb-3">
+                    <h2 class="accordion-header" id="sidebarMod{{ module.id }}">
+                        <button class="accordion-button bg-transparent text-white shadow-none collapsed fw-bold ps-0" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCol{{ module.id }}">
+                            <i class="bi bi-folder me-2 text-secondary"></i> {{ module.title }}
+                        </button>
+                    </h2>
+                    <div id="sidebarCol{{ module.id }}" class="accordion-collapse collapse {% if lesson.topic.module.id == module.id %}show{% endif %}" data-bs-parent="#sidebarAccordion">
+                        <div class="accordion-body ps-0 pe-1">
+                            {% for topic in module.topics %}
+                                <div class="text-muted small mb-2 mt-2 ps-1">{{ topic.title }}</div>
+                                {% for l in topic.lessons %}
+                                <a href="{{ url_for('view_lesson', lesson_id=l.id) }}" 
+                                   class="d-block text-decoration-none p-2 mb-1 curriculum-item {% if l.id == lesson.id %}active{% endif %}">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi {% if l.id == lesson.id %}bi-pause-circle-fill{% else %}bi-play-circle{% endif %} me-2 {% if l.id == lesson.id %}text-teal{% else %}text-muted{% endif %}"></i>
+                                        <div class="text-truncate" style="font-size: 0.9rem;">
+                                            <span class="{% if l.id == lesson.id %}text-white fw-bold{% else %}text-gray-300{% endif %}">
+                                                {{ l.title }}
+                                            </span>
+                                            {% if l.is_lab_lesson %}<span class="badge bg-warning text-dark ms-2" style="font-size: 0.6rem;">LAB</span>{% endif %}
+                                        </div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- RIGHT: Lesson Content -->
+        <div class="col-md-8 col-lg-9 p-4 p-md-5">
+            <!-- Mobile Breadcrumb -->
+            <div class="d-md-none mb-3">
+                <a href="{{ url_for('course_detail', course_id=course.id) }}" class="text-decoration-none text-white">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+
+            <div class="lesson-content">
+                <!-- Lesson Header -->
+                <div class="mb-4 border-bottom border-secondary pb-3">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('course_detail', course_id=course.id) }}" class="text-muted">Modules</a></li>
+                            <li class="breadcrumb-item"><a href="#" class="text-muted">{{ lesson.topic.module.title }}</a></li>
+                            <li class="breadcrumb-item active text-white">{{ lesson.title }}</li>
+                        </ol>
+                    </nav>
+                    <h1 class="text-white fw-bold">{{ lesson.title }}</h1>
+                    <p class="text-muted">{{ lesson.description }}</p>
+                </div>
+
+                <!-- VIDEO CONTENT -->
+                {% if lesson.video_url %}
+                <div class="video-container">
+                    <!-- Simple YouTube embed logic -->
+                    {% if 'youtube.com' in lesson.video_url or 'youtu.be' in lesson.video_url %}
+                        {% set video_id = lesson.video_url.split('v=')[-1].split('&')[0] %}
+                        <iframe src="https://www.youtube.com/embed/{{ video_id }}?rel=0" allowfullscreen></iframe>
+                    {% else %}
+                        <!-- Generic embed -->
+                        <iframe src="{{ lesson.video_url }}" allowfullscreen></iframe>
+                    {% endif %}
+                </div>
+                {% elif lesson.video_file %}
+                <div class="video-container d-flex align-items-center justify-content-center bg-black text-white">
+                    <video controls class="w-100" style="height:100%">
+                        <source src="{{ url_for('uploaded_file', filename=lesson.video_file) }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                {% endif %}
+
+                <!-- LAB LESSON BANNER -->
+                {% if lesson.is_lab_lesson %}
+                <div class="lab-banner text-white d-flex align-items-center">
+                    <i class="bi bi-flask1 fs-1 me-3"></i>
+                    <div>
+                        <h5 class="fw-bold m-0">Laboratory Exercise</h5>
+                        <small>This lesson involves practical work. Please follow safety protocols.</small>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- THEORY TEXT -->
+                <div class="rich-text">
+                    {% if lesson.theory_text %}
+                        {{ lesson.theory_text | safe }}
+                    {% else %}
+                        <p class="text-muted fst-italic">No theoretical notes provided for this lesson.</p>
+                    {% endif %}
+                </div>
+
+                <!-- ATTACHED IMAGES / DIAGRAMS -->
+                {% if lesson.image_files %}
+                <div class="mt-5">
+                    <h4 class="text-white mb-3"><i class="bi bi-images"></i> Diagrams & Resources</h4>
+                    <div class="row g-3">
+                        {% set images = lesson.image_files.split(',') %}
+                        {% for img in images %}
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-secondary">
+                                <img src="{{ url_for('uploaded_file', filename=img) }}" class="card-img-top" alt="Diagram">
+                                <div class="card-body p-2 text-center">
+                                    <small class="text-muted">Figure {{ loop.index }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ACTION BUTTONS -->
+                <div class="d-flex justify-content-between mt-5 pt-4 border-top border-secondary">
+                    <button class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Previous</button>
+                    
+                    <button class="btn btn-success btn-lg px-4">
+                        <i class="bi bi-check-circle"></i> Mark as Complete
+                    </button>
+                    
+                    <button class="btn btn-primary">Next Lesson <i class="bi bi-arrow-right"></i></button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

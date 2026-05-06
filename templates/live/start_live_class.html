@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Start Live Class - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-camera-video"></i> Start Live Class</h2>
+    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left"></i> Back to Course
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-book"></i> Course: {{ course.title }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('start_live_class', course_id=course.id) }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Live Class Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" required placeholder="e.g., Cell Biology - Live Lecture">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Brief description of the live session..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="stream_url" class="form-label">Stream URL *</label>
+                        <input type="url" class="form-control" id="stream_url" name="stream_url" required placeholder="https://youtube.com/live/...">
+                        <small class="text-muted">Enter your live streaming URL (YouTube Live, Vimeo, etc.)</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-broadcast"></i> Start Live Class
+                        </button>
+                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

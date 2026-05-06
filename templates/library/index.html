@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Biology Research Lab{% endblock %}
+
+{# REMOVED bio_library.css link to match base.html Green theme #}
+
+{% block content %}
+<div class="container mt-3">
+    <div class="row">
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100" style="border-top: 4px solid var(--biology-green);">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-robot"></i> The Eagle AI</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Ask The Eagle AI to analyze biology topics, find resources, or summarize concepts.</p>
+                    
+                    <div class="bg-light border p-3 mb-3 rounded" style="height: 300px; overflow-y: auto;" id="ai-chat-history">
+                        <div class="alert alert-success d-inline-block">Hello! I am The Eagle AI, your Biology Research Assistant. How can I help you study today?</div>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="ai-query" placeholder="Ask about cells, genetics, etc...">
+                        <button class="btn btn-success" id="ai-send-btn" onclick="askAI()">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0" style="color: var(--biology-dark-green);"><i class="bi bi-collection-play"></i> Resource Archive</h2>
+                <div>
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('upload_library_resource') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-upload"></i> Upload New
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <form action="{{ url_for('library_index') }}" method="GET">
+                        <select name="category" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <form action="{{ url_for('library_index') }}" method="GET">
+                         <input type="text" name="search" class="form-control" placeholder="Search titles..." value="{{ search }}">
+                    </form>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {% for resource in resources %}
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100 d-flex flex-column">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-secondary">{{ resource.category }}</span>
+                                {% if current_user.is_admin %}
+                                <div class="btn-group" role="group" aria-label="Admin actions">
+                                    <a href="{{ url_for('edit_library_resource', resource_id=resource.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit resource">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('delete_library_resource', resource_id=resource.id) }}" class="d-inline" onsubmit="return confirm('Delete this resource?')">
+                                        <button class="btn btn-sm btn-outline-danger" title="Delete resource">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <h5 class="card-title text-truncate" style="color: var(--biology-dark-green);">{{ resource.title }}</h5>
+                            <p class="card-text text-muted small text-truncate">{{ resource.description }}</p>
+                            
+                            <div class="mt-auto">
+                                <a href="{{ url_for('view_library_resource', resource_id=resource.id) }}" class="btn btn-success w-100">
+                                    <i class="bi bi-eye"></i> View in Lab
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% if not resources %}
+                <div class="col-12 text-center mt-5">
+                    <div class="alert alert-light border">
+                        <i class="bi bi-inbox text-muted fs-1 d-block mb-2"></i>
+                        <h5 class="text-muted">No resources found matching criteria.</h5>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function escapeHtml(value) {
+    return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+}
+
+/**
+ * Advanced Typewriter Loop: Parses markdown bold (**text**) dynamically 
+ * while typing character-by-character and managing autoscroll.
+ */
+function runLiveTypewriter(element, fullText, speed = 15, callback = null) {
+    element.innerHTML = ""; // Instantly clear container before loop begins
+    
+    let currentIdx = 0;
+    let isBoldActive = false;
+    let currentSpanNode = null;
+
+    function typeNextChar() {
+        if (currentIdx < fullText.length) {
+            // Check if we are encountering a markdown bold marker (**)
+            if (fullText.substring(currentIdx, currentIdx + 2) === "**") {
+                isBoldActive = !isBoldActive;
+                currentIdx += 2; // Move pointer past both asterisks
+                
+                if (isBoldActive) {
+                    // Create a bold node container to receive upcoming characters
+                    currentSpanNode = document.createElement("strong");
+                    element.appendChild(currentSpanNode);
+                } else {
+                    // Close out current bold collection node scope
+                    currentSpanNode = null;
+                }
+                
+                // Immediately schedule next tick without waiting to keep rhythm fluid
+                typeNextChar();
+                return;
+            }
+
+            const char = fullText.charAt(currentIdx);
+            
+            if (char === '\n') {
+                // Insert explicit line break
+                element.appendChild(document.createElement("br"));
+            } else {
+                // Append text character safely to escape script injection
+                const textTargetNode = document.createTextNode(char);
+                if (isBoldActive && currentSpanNode) {
+                    currentSpanNode.appendChild(textTargetNode);
+                } else {
+                    element.appendChild(textTargetNode);
+                }
+            }
+            
+            currentIdx++;
+            
+            // Constantly force scroll container down as characters stream in
+            const historyDiv = document.getElementById('ai-chat-history');
+            if (historyDiv) {
+                historyDiv.scrollTop = historyDiv.scrollHeight;
+            }
+            
+            setTimeout(typeNextChar, speed);
+        } else {
+            if (callback) callback();
+        }
+    }
+    
+    typeNextChar();
+}
+
+async function askAI() {
+    const queryInput = document.getElementById('ai-query');
+    const sendButton = document.getElementById('ai-send-btn');
+    const historyDiv = document.getElementById('ai-chat-history');
+    const query = queryInput.value.trim();
+
+    if (!query || queryInput.disabled) return;
+
+    // Instantly freeze elements to prevent cross-talk during typing
+    queryInput.disabled = true;
+    sendButton.disabled = true;
+
+    // Append User text bubble
+    historyDiv.innerHTML += `<div class="text-end mb-2"><span class="fw-bold">You:</span> ${escapeHtml(query)}</div><br>`;
+    queryInput.value = '';
+    historyDiv.scrollTop = historyDiv.scrollHeight;
+
+    // Create unique thinking spinner container
+    const loadingId = 'loading-' + Date.now();
+    historyDiv.innerHTML += `<div id="${loadingId}" class="text-muted small mb-2"><i class="spinner-border spinner-border-sm me-1"></i> The Eagle thinking...</div>`;
+    historyDiv.scrollTop = historyDiv.scrollHeight;
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        
+        const response = await fetch('/library/ai-research', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        const data = await response.json();
+        
+        // Remove the spinner block safely
+        const loadingElement = document.getElementById(loadingId);
+        if (loadingElement) loadingElement.remove();
+
+        // Create a completely unpopulated green alert box where the text will type out
+        const responseBoxId = 'response-' + Date.now();
+        historyDiv.innerHTML += `<div id="${responseBoxId}" class="alert alert-success d-inline-block"></div><br>`;
+        const responseTarget = document.getElementById(responseBoxId);
+
+        const aiText = data.response || 'No response received from the system.';
+        
+        // Feed the retrieved AI response directly into the typewriter animator loop
+        runLiveTypewriter(responseTarget, aiText, 15, () => {
+            // Re-enable input buttons ONLY after typewriter finishes typing completely
+            queryInput.disabled = false;
+            sendButton.disabled = false;
+            queryInput.focus();
+        });
+
+        if (!data.success && data.error) {
+            historyDiv.innerHTML += `<div class="text-danger small mt-1">Debug Info: ${escapeHtml(String(data.error))}</div>`;
+        }
+    } catch (error) {
+        const loadingElement = document.getElementById(loadingId);
+        if (loadingElement) loadingElement.remove();
+        
+        historyDiv.innerHTML += `<div class="alert alert-danger d-inline-block small">The Eagle AI timed out. Please try again.</div><br>`;
+        
+        queryInput.disabled = false;
+        sendButton.disabled = false;
+    }
+    historyDiv.scrollTop = historyDiv.scrollHeight;
+}
+
+// Intercept Enter key press explicitly on the input text field
+document.getElementById('ai-query').addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (!this.disabled) {
+            askAI();
+        }
+    }
+});
+</script>
+{% endblock %}

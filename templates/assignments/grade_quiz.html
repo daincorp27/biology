@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Grade Quiz Submission - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-pencil-square"></i> Grade Quiz Submission</h2>
+        <p class="text-muted mb-0">{{ submission.student.full_name }} — {{ quiz.title }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('quiz_submissions', quiz_id=quiz.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Submissions
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="mb-4">
+            <span class="badge bg-primary me-2">Course: {{ quiz.course.title }}</span>
+            <span class="badge bg-secondary me-2">Type: {{ quiz.quiz_type|capitalize }}</span>
+            <span class="badge bg-info">Total Points: {{ quiz.total_points }}</span>
+        </div>
+
+        <form method="POST">
+            {% for answer in answers %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="mb-1">Question {{ loop.index }}</h5>
+                            <p class="text-muted mb-0">{{ answer.question.question_text }}</p>
+                        </div>
+                        <span class="badge bg-secondary">{{ answer.question.points }} pts</span>
+                    </div>
+
+                    {% if answer.question.question_type == 'objective' %}
+                        <div class="mb-3">
+                            <strong>Selected Answer:</strong>
+                            <span class="ms-2">{{ answer.selected_option or 'No answer' }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Correct Answer:</strong>
+                            <span class="ms-2">{{ answer.question.correct_option }}</span>
+                        </div>
+                        <div>
+                            <strong>Result:</strong>
+                            {% if answer.points_earned == answer.question.points %}
+                                <span class="badge bg-success">Correct</span>
+                            {% else %}
+                                <span class="badge bg-danger">Incorrect</span>
+                            {% endif %}
+                        </div>
+                    {% elif answer.question.question_type == 'qa' %}
+                        <div class="mb-3">
+                            <strong>Student Response:</strong>
+                            <p class="border rounded p-3 bg-light">{{ answer.text_answer or 'No answer submitted.' }}</p>
+                        </div>
+                    {% elif answer.question.question_type == 'drawing' %}
+                        <div class="mb-3">
+                            <strong>Student Drawing:</strong>
+                            {% if answer.drawing_path %}
+                                <div class="mt-2">
+                                    <a href="{{ url_for('uploaded_file', filename=answer.drawing_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">Open Drawing</a>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No drawing was uploaded.</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    {% if answer.question.question_type != 'objective' %}
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <label class="form-label">Points Awarded</label>
+                            <input type="number" class="form-control" name="answer_{{ answer.id }}_score" value="{{ answer.points_earned }}" min="0" max="{{ answer.question.points }}" required>
+                            <div class="form-text">Enter 0 to {{ answer.question.points }}.</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-light">
+                        Objective questions are auto-graded at submission time.
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Teacher Feedback</label>
+                        <textarea class="form-control" name="answer_{{ answer.id }}_feedback" rows="3">{{ answer.teacher_feedback or '' }}</textarea>
+                        <div class="form-text">Optional feedback the student will see in their review.</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Grades
+                </button>
+                <a href="{{ url_for('quiz_submissions', quiz_id=quiz.id) }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Viewing: {{ resource.title }}{% endblock %}
+
+{% block head %}
+<!-- Script moved from here to the bottom to fix loading errors -->
+<style>
+/* ================================
+   1. GLOBAL UI HIDING & RESET
+================================= */
+.navbar, .footer { display: none !important; }
+
+html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background-color: #1a1a1a; overflow: hidden;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+/* ================================
+   2. CONTENT CONTAINERS
+================================= */
+.full-screen-container {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000; background: #1a1a1a;
+}
+
+#pdf-canvas-container {
+    width: 100%; height: 100vh;
+    overflow-y: auto; overflow-x: hidden;
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 80px; /* Space for floating header */
+    scroll-behavior: smooth;
+}
+
+canvas {
+    margin-bottom: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    max-width: 95vw;
+}
+
+/* Image Shield Overlay */
+.img-shield {
+    position: relative; display: inline-block;
+    max-width: 100%; max-height: 100%;
+}
+.img-shield::after {
+    content: ""; position: absolute; inset: 0;
+    z-index: 10; background: rgba(0,0,0,0);
+}
+
+/* ================================
+   3. FLOATING HEADER
+================================= */
+.floating-header {
+    position: fixed; top: 18px; left: 50%;
+    transform: translateX(-50%); z-index: 2500;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 16px; border-radius: 30px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    pointer-events: auto !important;
+}
+
+.floating-header span {
+    font-weight: 600; color: #000;
+    max-width: 50vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ================================
+   4. WATERMARK (optional)
+================================= */
+.watermark {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 40px;
+    color: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    z-index: 5000;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="full-screen-container">
+
+    <div class="floating-header">
+        <a href="{{ url_for('library_index') }}" class="btn btn-sm btn-dark" style="border-radius: 20px;">
+            <i class="bi bi-x-lg"></i> Close
+        </a>
+        <span>{{ resource.title }}</span>
+    </div>
+
+    {% if resource.file_extension == 'pdf' %}
+        <iframe
+            src="{{ url_for('serve_library_file', filename=resource.file_name, token=preview_token) }}#view=FitH&toolbar=0&navpanes=0&statusbar=0"
+            style="width: 100%; height: 100%; border: 0;"
+            title="PDF Preview"
+        ></iframe>
+
+    {% elif resource.file_extension in ['png', 'jpg', 'jpeg', 'gif', 'svg'] %}
+        <div class="img-shield">
+            <img src="{{ url_for('serve_library_file', filename=resource.file_name, token=preview_token) }}" 
+                 style="max-width:90vw; max-height:90vh; object-fit:contain;" draggable="false">
+        </div>
+
+    {% elif resource.file_extension in ['mp4', 'webm'] %}
+        <video controls controlslist="nodownload noremoteplayback" disablepictureinpicture
+               oncontextmenu="return false;" style="max-width:90vw; max-height:90vh;">
+            <source src="{{ url_for('serve_library_file', filename=resource.file_name, token=preview_token) }}">
+        </video>
+    {% endif %}
+
+</div>
+
+<script>
+(function() {
+    // Security scripts
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && ['s','p','u','i','j','c'].includes(e.key.toLowerCase())) e.preventDefault();
+        if (e.key === 'F12') e.preventDefault();
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz.title }} - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('courses_list') }}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('course_detail', course_id=quiz.course.id) }}">{{ quiz.course.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ quiz.title }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> {{ quiz.title }}</h5>
+                    <span class="badge bg-info">{{ quiz.total_points }} Points</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if quiz.description %}
+                <p class="text-muted mb-4">{{ quiz.description }}</p>
+                {% endif %}
+
+                {% if quiz.topic or quiz.module %}
+                <div class="mb-4">
+                    <span class="badge bg-secondary me-2">Related to: {{ quiz.topic.title if quiz.topic else quiz.module.title }}</span>
+                    {% if quiz.time_limit and quiz.time_limit > 0 %}
+                        <span class="badge bg-warning">Timed: {{ quiz.time_limit }} min</span>
+                    {% endif %}
+                    <span class="badge bg-info">Type: {{ quiz.quiz_type|capitalize }}</span>
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('take_quiz', quiz_id=quiz.id) }}" enctype="multipart/form-data">
+                    {% if quiz.time_limit and quiz.time_limit > 0 %}
+                    <div class="alert alert-warning">
+                        <strong>Time limit:</strong> <span id="quizTimer">{{ quiz.time_limit }}:00</span> minutes remaining. The quiz will submit automatically when time expires.
+                    </div>
+                    {% endif %}
+
+                    {% for question in questions %}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">
+                                <span class="badge bg-success me-2">Question {{ loop.index }}</span>
+                                <span class="badge bg-secondary">{{ question.points }} pts</span>
+                            </h6>
+                            <p class="card-text mb-3">{{ question.question_text }}</p>
+
+                            {% if question.question_type == 'objective' %}
+                            <div class="list-group">
+                                <label class="list-group-item list-group-item-action">
+                                    <input class="form-check-input me-2" type="radio" name="question_{{ question.id }}" value="A" required>
+                                    A. {{ question.option_a }}
+                                </label>
+                                <label class="list-group-item list-group-item-action">
+                                    <input class="form-check-input me-2" type="radio" name="question_{{ question.id }}" value="B" required>
+                                    B. {{ question.option_b }}
+                                </label>
+                                <label class="list-group-item list-group-item-action">
+                                    <input class="form-check-input me-2" type="radio" name="question_{{ question.id }}" value="C" required>
+                                    C. {{ question.option_c }}
+                                </label>
+                                <label class="list-group-item list-group-item-action">
+                                    <input class="form-check-input me-2" type="radio" name="question_{{ question.id }}" value="D" required>
+                                    D. {{ question.option_d }}
+                                </label>
+                            </div>
+                            {% elif question.question_type == 'qa' %}
+                            <div class="mb-3">
+                                <label class="form-label">Your Answer</label>
+                                <textarea class="form-control" name="question_{{ question.id }}_text" rows="4" required placeholder="Write your answer here..."></textarea>
+                            </div>
+                            {% elif question.question_type == 'drawing' %}
+                            <div class="mb-3">
+                                <label class="form-label">Upload Your Drawing</label>
+                                <input type="file" class="form-control" name="question_{{ question.id }}_drawing" accept="image/*" required>
+                                <small class="text-muted">Upload a photo or scanned sketch that answers the drawing prompt.</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> Submit Quiz
+                        </button>
+                        <a href="{{ url_for('course_detail', course_id=quiz.course.id) }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if quiz.time_limit and quiz.time_limit > 0 %}
+<script>
+(function() {
+    const timerElement = document.getElementById('quizTimer');
+    const form = document.querySelector('form');
+    let remainingSeconds = {{ quiz.time_limit }} * 60;
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+    }
+
+    function tick() {
+        if (remainingSeconds <= 0) {
+            timerElement.textContent = '00:00';
+            if (form) form.submit();
+            return;
+        }
+        remainingSeconds -= 1;
+        timerElement.textContent = formatTime(remainingSeconds);
+    }
+
+    timerElement.textContent = formatTime(remainingSeconds);
+    setInterval(tick, 1000);
+})();
+</script>
+{% endif %}
+{% endblock %}

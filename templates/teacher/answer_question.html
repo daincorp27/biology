@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Answer Question - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('teacher_questions_inbox') }}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Back to Inbox
+    </a>
+</div>
+
+<!-- Student's Question -->
+<div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Student Question</h5>
+    </div>
+    <div class="card-body">
+        <h6 class="mb-2">{{ question.title }}</h6>
+        <p class="card-text">
+            <strong>From:</strong> {{ question.student.full_name }}<br>
+            <strong>Posted:</strong> {{ question.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+        </p>
+        <hr>
+        <p class="card-text">{{ question.content }}</p>
+        
+        {% if question.attachment_path %}
+        <div class="mt-3">
+            {% if question.question_type == 'image' or 'image' in question.question_type %}
+                <img src="{{ url_for('static', filename=question.attachment_path) }}" class="img-fluid" style="max-height: 300px;">
+            {% elif question.question_type == 'voice' or 'voice' in question.question_type %}
+                <audio controls class="w-100">
+                    <source src="{{ url_for('static', filename=question.attachment_path) }}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Answer Form -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">
+            {% if existing_answer %}
+                <i class="bi bi-pencil"></i> Edit Your Answer
+            {% else %}
+                <i class="bi bi-reply"></i> Post Your Answer
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="content" class="form-label">Your Answer *</label>
+                <textarea class="form-control" id="content" name="content" rows="8" required placeholder="Provide a clear, helpful answer to the student's question...">{% if existing_answer %}{{ existing_answer.content }}{% endif %}</textarea>
+                <small class="text-muted">Be thorough and educational. The student and other teachers will see this answer.</small>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Answer Format</label>
+                <div class="btn-group d-flex" role="group">
+                    <input type="radio" class="btn-check" name="answer_type" id="atype_text" value="text" {% if not existing_answer or existing_answer.answer_type == 'text' %}checked{% endif %}>
+                    <label class="btn btn-outline-success" for="atype_text">
+                        <i class="bi bi-type"></i> Text Only
+                    </label>
+
+                    <input type="radio" class="btn-check" name="answer_type" id="atype_image" value="image" {% if existing_answer and existing_answer.answer_type == 'image' %}checked{% endif %}>
+                    <label class="btn btn-outline-success" for="atype_image">
+                        <i class="bi bi-image"></i> + Image
+                    </label>
+
+                    <input type="radio" class="btn-check" name="answer_type" id="atype_voice" value="voice" {% if existing_answer and existing_answer.answer_type == 'voice' %}checked{% endif %}>
+                    <label class="btn btn-outline-success" for="atype_voice">
+                        <i class="bi bi-mic"></i> + Voice
+                    </label>
+
+                    <input type="radio" class="btn-check" name="answer_type" id="atype_mixed" value="mixed" {% if existing_answer and existing_answer.answer_type == 'mixed' %}checked{% endif %}>
+                    <label class="btn btn-outline-success" for="atype_mixed">
+                        <i class="bi bi-collection"></i> + Both
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="attachment" class="form-label">Attachment (Optional)</label>
+                <input type="file" class="form-control" id="attachment" name="attachment" accept="image/*,audio/*">
+                <small class="text-muted">Upload a diagram, image, or voice explanation to enhance your answer</small>
+                {% if existing_answer and existing_answer.attachment_path %}
+                    <div class="mt-2 alert alert-info">
+                        <i class="bi bi-info-circle"></i> Current attachment will be replaced if you upload a new file.
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-send"></i> 
+                    {% if existing_answer %}
+                        Update Answer
+                    {% else %}
+                        Post Answer
+                    {% endif %}
+                </button>
+                <a href="{{ url_for('teacher_questions_inbox') }}" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Info Box -->
+<div class="card border-info">
+    <div class="card-header bg-info text-white">
+        <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Tips for Great Answers</h6>
+    </div>
+    <div class="card-body">
+        <ul class="mb-0">
+            <li><strong>Be Clear:</strong> Explain concepts in simple, understandable language</li>
+            <li><strong>Provide Examples:</strong> Use real-world biology examples when possible</li>
+            <li><strong>Reference:</strong> Mention textbooks, lessons, or resources if relevant</li>
+            <li><strong>Use Visuals:</strong> Diagrams and images help students understand complex concepts</li>
+            <li><strong>Encourage:</strong> Support the student's learning journey</li>
+            <li><strong>Multiple Perspectives:</strong> Your answer alongside other teachers' answers helps students learn comprehensively</li>
+        </ul>
+    </div>
+</div>
+
+{% if existing_answer %}
+<div class="alert alert-success mt-4">
+    <i class="bi bi-check-circle"></i> You've already answered this question. You can edit your answer above.
+</div>
+{% endif %}
+{% endblock %}

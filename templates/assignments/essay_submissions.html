@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Essay Submissions - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-text"></i> Essay Submissions</h2>
+    <a href="{{ url_for('course_detail', course_id=essay.course.id) }}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left"></i> Back to Course
+    </a>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">{{ essay.title }}</h5>
+        <small class="text-white">{{ essay.max_points }} Points</small>
+    </div>
+    <div class="card-body">
+        {% if submissions %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for submission in submissions %}
+                    <tr>
+                        <td><strong>{{ submission.student.full_name }}</strong></td>
+                        <td>
+                            {% if submission.graded %}
+                            <span class="badge bg-success">Graded</span>
+                            {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if submission.graded %}
+                            {{ submission.score }}/{{ essay.max_points }}
+                            {% set percentage = ((submission.score / essay.max_points) * 100) | round(2) %}
+                            <span class="badge bg-{{ 'success' if percentage >= 60 else 'danger' }} ms-2">{{ percentage }}%</span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="{{ url_for('grade_essay_submission', submission_id=submission.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Grade
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">No submissions yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

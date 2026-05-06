@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col-lg-6">
+        <div class="text-center mb-5">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="" width="150px"></i>
+            <h1 class="display-4 fw-bold mb-4" style="color: var(--biology-green);">
+                The Eagle Biology Class
+            </h1>
+            <p class="lead mb-4">
+                Welcome to our comprehensive Learning Management System designed specifically for Biology education.
+                Explore structured lessons, interactive labs, quizzes, and a digital library of biology resources.
+            </p>
+            {% if not current_user.is_authenticated %}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                        <i class="bi bi-person-plus"></i> Get Started
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-success btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                </div>
+            {% else %}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                        <i class="bi bi-speedometer2"></i> Go to Dashboard
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-info-circle"></i> Platform Features</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-book text-success me-3"></i>
+                        <span><strong>Structured Curriculum:</strong> Courses, modules, topics, and lessons</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-flask text-success me-3"></i>
+                        <span><strong>Practical Labs:</strong> Hands-on biology lab lessons</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-clipboard-data text-success me-3"></i>
+                        <span><strong>Assessments:</strong> Quizzes and essays with grading</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-camera-video text-success me-3"></i>
+                        <span><strong>Live Classes:</strong> Real-time streaming lessons</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-chat-dots text-success me-3"></i>
+                        <span><strong>Discussions:</strong> Course-based Q&A forums</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-collection text-success me-3"></i>
+                        <span><strong>Digital Library:</strong> Access biology resources anytime</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-bell text-success me-3"></i>
+                        <span><strong>Notifications:</strong> Stay updated with announcements</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-mortarboard biology-icon mb-3"></i>
+                <h4>For Students</h4>
+                <p class="text-muted">
+                    Access courses, take quizzes, submit essays, attend live classes,
+                    and explore our digital biology library.
+                </p>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-success">Student Login</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-person-video2 biology-icon mb-3"></i>
+                <h4>For Teachers</h4>
+                <p class="text-muted">
+                    Create curriculum, manage courses, grade assignments,
+                    conduct live classes, and support student discussions.
+                </p>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-success">Teacher Login</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-shield-check biology-icon mb-3"></i>
+                <h4>For Admins</h4>
+                <p class="text-muted">
+                    Manage the platform, create courses, assign teachers,
+                    manage library resources, and oversee enrollments.
+                </p>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-success">Admin Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

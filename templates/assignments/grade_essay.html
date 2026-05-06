@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Grade Essay - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-pencil"></i> Grade Essay</h2>
+    <a href="{{ url_for('essay_submissions', essay_id=submission.essay.id) }}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left"></i> Back to Submissions
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Student: {{ submission.student.full_name }}</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">{{ submission.essay.title }}</h6>
+                {% if submission.text_content %}
+                <div class="border p-3 mb-3" style="background: #fafafa;">
+                    <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ submission.text_content }}</pre>
+                </div>
+                {% endif %}
+                {% if submission.uploaded_file %}
+                <div class="alert alert-info">
+                    <i class="bi bi-file-earmark"></i> Uploaded file: {{ submission.uploaded_file }}
+                    <a href="{{ url_for('uploaded_file', filename=submission.uploaded_file) }}" class="btn btn-sm btn-outline-primary ms-2">Download</a>
+                </div>
+                {% endif %}
+                <p class="text-muted"><small>Submitted: {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Grade This Essay</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('grade_essay_submission', submission_id=submission.id) }}">
+                    <div class="mb-3">
+                        <label for="score" class="form-label">Score (out of {{ submission.essay.max_points }})</label>
+                        <input type="number" class="form-control" id="score" name="score" min="0" max="{{ submission.essay.max_points }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="feedback" class="form-label">Feedback</label>
+                        <textarea class="form-control" id="feedback" name="feedback" rows="5" placeholder="Provide feedback to the student...">{{ submission.feedback or '' }}</textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Submit Grade
+                        </button>
+                    </div>
+                </form>
+
+                {% if submission.graded %}
+                <div class="alert alert-success mt-3">
+                    <strong><i class="bi bi-check-circle"></i> Previously Graded</strong><br>
+                    Score: {{ submission.score }}/{{ submission.essay.max_points }}<br>
+                    {% if submission.feedback %}
+                    Feedback: {{ submission.feedback }}
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

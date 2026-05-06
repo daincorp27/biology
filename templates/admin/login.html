@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white text-center">
+                <h4 class="mb-0"><i class="bi bi-shield-lock"></i> Admin Login</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_login') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Admin Email</label>
+                        <input type="email" class="form-control" id="username" name="username" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-in-right"></i> Admin Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small class="text-muted">
+                    <i class="bi bi-exclamation-circle"></i>
+                    Restricted access - Administrators only
+                </small>
+            </div>
+        </div>
+
+        <div class="alert alert-danger mt-3">
+            <small>
+                <i class="bi bi-shield-check"></i>
+                <strong>Security Notice:</strong><br>
+                This login is restricted to administrators only.<br>
+                For teacher login, please use the regular login page.
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}

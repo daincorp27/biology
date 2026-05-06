@@ -1,0 +1,311 @@
+/* --- FONTS --- */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap');
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: #0f172a; /* Deep Slate Blue */
+    color: #f8fafc;
+    overflow-x: hidden;
+}
+
+/* --- BACKGROUND ANIMATION (Floating Cells) --- */
+.bio-bg-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+}
+
+.cell {
+    position: absolute;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
+    filter: blur(40px);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: floatCell 20s infinite ease-in-out alternate, morphCell 15s infinite linear;
+}
+
+@keyframes floatCell {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(20px, 40px) rotate(20deg); }
+}
+
+@keyframes morphCell {
+    0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+}
+
+/* --- GLASS CARDS --- */
+.bio-card {
+    background: rgba(30, 41, 59, 0.65); /* Semi-transparent slate */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bio-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(45, 212, 191, 0.4); /* Teal glow on hover */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 15px rgba(45, 212, 191, 0.1);
+}
+
+/* --- FORM ELEMENTS --- */
+.form-control-bio, .form-select-bio {
+    background-color: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+    border-radius: 8px;
+}
+
+.form-control-bio:focus, .form-select-bio:focus {
+    background-color: rgba(15, 23, 42, 0.95);
+    border-color: #2dd4bf; /* Teal */
+    color: white;
+    box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.2);
+}
+
+.form-control-bio::placeholder {
+    color: #94a3b8;
+}
+
+/* --- BUTTONS --- */
+.btn-bio {
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-bio:hover {
+    background: linear-gradient(135deg, #14b8a6 0%, #115e59 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+    color: white;
+}
+
+/* --- AI CHAT SPECIFIC --- */
+.ai-chat-box {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+}
+
+/* Custom Scrollbar for Chat */
+.ai-chat-box::-webkit-scrollbar {
+    width: 6px;
+}
+.ai-chat-box::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+.ai-chat-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.ai-message {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(45, 212, 191, 0.1));
+    padding: 8px 12px;
+    border-radius: 12px;
+    border-bottom-left-radius: 2px;
+    border: 1px solid rgba(45, 212, 191, 0.15);
+    color: #ccfbf1; /* Light Teal text */
+    margin-bottom: 10px;
+    animation: fadeInMessage 0.3s ease-out;
+}
+
+@keyframes fadeInMessage {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- UTILITIES & OVERRIDES --- */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 6px;
+}
+
+a { text-decoration: none; }
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 1024px) {
+    body {
+        font-size: 15px;
+    }
+
+    .bio-card {
+        border-radius: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .bio-bg-animation {
+        height: 100vh;
+    }
+
+    .bio-card {
+        padding: 1.25rem;
+        border-radius: 12px;
+    }
+
+    .btn-bio {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .form-control-bio, .form-select-bio {
+        padding: 0.625rem 0.75rem;
+        font-size: 0.95rem;
+    }
+
+    h1, .h1 {
+        font-size: 1.75rem;
+    }
+
+    h2, .h2 {
+        font-size: 1.5rem;
+    }
+
+    h3, .h3 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    html {
+        font-size: 13px;
+    }
+
+    body {
+        font-size: 13px;
+    }
+
+    .bio-card {
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+    }
+
+    .bio-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-bio {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control-bio, .form-select-bio {
+        padding: 0.6rem 0.75rem;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .ai-chat-box {
+        height: 200px;
+        font-size: 0.85rem;
+    }
+
+    .ai-message {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+    }
+
+    h1, .h1 {
+        font-size: 1.5rem;
+    }
+
+    h2, .h2 {
+        font-size: 1.25rem;
+    }
+
+    h3, .h3 {
+        font-size: 1.1rem;
+    }
+
+    h4, .h4 {
+        font-size: 1rem;
+    }
+
+    p {
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.3em 0.6em;
+    }
+
+    /* Stack grid layouts */
+    .grid-cols-2 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .grid-cols-3 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Make containers full width with padding */
+    .container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+@media (max-width: 360px) {
+    html {
+        font-size: 12px;
+    }
+
+    .bio-card {
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+
+    .btn-bio {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .form-control-bio, .form-select-bio {
+        padding: 0.5rem 0.5rem;
+        font-size: 14px;
+    }
+
+    .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+/* Ensure proper spacing on all devices */
+@media (orientation: landscape) and (max-height: 500px) {
+    .bio-card {
+        padding: 0.75rem;
+    }
+
+    .ai-chat-box {
+        height: 150px;
+    }
+}

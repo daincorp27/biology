@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Course Discussions - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-chat-square-text"></i> {{ course.title }} Discussions</h2>
+        <p class="text-muted mb-0">Join course conversations and follow pinned threads.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('create_discussion', course_id=course.id) }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> New Discussion
+        </a>
+    </div>
+</div>
+
+<form method="GET" action="{{ url_for('course_discussions', course_id=course.id) }}" class="mb-4">
+    <div class="input-group">
+        <input type="search" name="search" class="form-control" placeholder="Search discussions by title or content..." value="{{ search|default('') }}" aria-label="Search discussions">
+        <button class="btn btn-outline-secondary" type="submit">
+            <i class="bi bi-search"></i> Search
+        </button>
+    </div>
+</form>
+
+{% if search %}
+<div class="alert alert-info py-2">
+    Showing results for <strong>{{ search }}</strong>. {{ discussions|length }} result{{ discussions|length != 1 and 's' or '' }} found.
+</div>
+{% endif %}
+
+{% if discussions %}
+<div class="row g-3">
+    {% for discussion in discussions %}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="mb-1">
+                            {% if discussion.is_pinned %}
+                                <i class="bi bi-pin-angle-fill text-warning"></i>
+                            {% endif %}
+                            <a href="{{ url_for('reply_discussion', discussion_id=discussion.id) }}" class="stretched-link text-decoration-none text-dark">
+                                {{ discussion.title }}
+                            </a>
+                        </h5>
+                        <p class="mb-0 text-muted">{{ discussion.content[:180] }}{% if discussion.content|length > 180 %}...{% endif %}</p>
+                    </div>
+                    <span class="badge bg-secondary">{{ discussion.replies.count() }} replies</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2 text-muted small">
+                    <span>Started by {{ discussion.author.full_name }}</span>
+                    <span>· {{ discussion.created_at.strftime('%B %d, %Y') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        {% if search %}
+            <h5 class="mb-3">No matching discussions found</h5>
+            <p class="text-muted mb-4">Try a different keyword or create a new discussion to start the conversation.</p>
+        {% else %}
+            <h5 class="mb-3">No discussions yet</h5>
+            <p class="text-muted mb-4">Be the first to ask a question or share your thoughts about this course.</p>
+        {% endif %}
+        <a href="{{ url_for('create_discussion', course_id=course.id) }}" class="btn btn-primary">Start a discussion</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

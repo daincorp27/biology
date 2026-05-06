@@ -1,0 +1,10 @@
+audioop-lts==0.2.1
+Flask==3.0.0
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+Werkzeug==3.0.1
+SQLAlchemy==2.0.23
+Jinja2==3.1.2
+python-dotenv==1.0.0
+requests==2.32.3
+google-generativeai

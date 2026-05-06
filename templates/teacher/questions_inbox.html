@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Student Questions - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2><i class="bi bi-inbox"></i> Student Questions Inbox</h2>
+    <p class="text-muted">Help students by answering their questions. Each question you answer is sent to the student's inbox.</p>
+</div>
+
+{% if questions.items %}
+    <div class="row">
+        {% for question in questions.items %}
+        <div class="col-md-12 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="card-title">{{ question.title }}</h5>
+                            <p class="card-text text-muted small mb-2">
+                                <i class="bi bi-person"></i> <strong>{{ question.student.full_name }}</strong>
+                                <span class="ms-3"><i class="bi bi-clock"></i> {{ question.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                            </p>
+                        </div>
+                        {% set has_answered = question.answers.filter_by(teacher_id=current_user.id).first() %}
+                        {% if has_answered %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> You answered</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="card-text">{{ question.content[:200] }}{% if question.content|length > 200 %}...{% endif %}</p>
+                    
+                    {% if question.attachment_path %}
+                    <div class="mt-2 mb-2">
+                        {% if question.question_type == 'image' or 'image' in question.question_type %}
+                            <a href="{{ url_for('static', filename=question.attachment_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-image"></i> View Image
+                            </a>
+                        {% elif question.question_type == 'voice' or 'voice' in question.question_type %}
+                            <audio controls class="mt-2">
+                                <source src="{{ url_for('static', filename=question.attachment_path) }}" type="audio/mpeg">
+                            </audio>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-3">
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <small class="text-muted">
+                                <strong>{{ question.answer_count }}</strong> Answer{% if question.answer_count != 1 %}s{% endif %} from teachers
+                                {% if question.answered_by %}
+                                    - 
+                                    {% for teacher in question.answered_by %}
+                                        {{ teacher.full_name }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('answer_question', question_id=question.id) }}" class="btn btn-sm btn-primary">
+                                {% if has_answered %}
+                                    <i class="bi bi-pencil"></i> Edit Answer
+                                {% else %}
+                                    <i class="bi bi-reply"></i> Answer
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if questions.pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if questions.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('teacher_questions_inbox', page=questions.prev_num) }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for page_num in questions.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == questions.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('teacher_questions_inbox', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if questions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('teacher_questions_inbox', page=questions.next_num) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+{% else %}
+    <div class="alert alert-info text-center py-5">
+        <h5><i class="bi bi-inbox"></i> No Questions Yet</h5>
+        <p>There are no student questions at the moment. Check back later!</p>
+    </div>
+{% endif %}
+{% endblock %}

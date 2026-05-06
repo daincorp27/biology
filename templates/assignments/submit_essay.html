@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Essay - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-text"></i> Submit Essay</h2>
+    <a href="{{ url_for('course_detail', course_id=essay.course.id) }}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left"></i> Back to Course
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">{{ essay.title }}</h5>
+                <small class="text-white">{{ essay.max_points }} Points</small>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <strong>Question/Prompt:</strong>
+                    <p class="text-muted">{{ essay.question_text }}</p>
+                    {% if essay.due_date %}
+                    <small class="text-warning"><i class="bi bi-clock"></i> Due: {{ essay.due_date.strftime('%B %d, %Y') }}</small>
+                    {% endif %}
+                </div>
+
+                <form method="POST" action="{{ url_for('submit_essay', essay_id=essay.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="text_content" class="form-label">Your Essay</label>
+                        <textarea class="form-control" id="text_content" name="text_content" rows="12" placeholder="Write your essay here..."></textarea>
+                    </div>
+
+                    {% if essay.allows_file_upload %}
+                    <div class="mb-4">
+                        <label for="uploaded_file" class="form-label">Or Upload File (PDF, Word)</label>
+                        <input type="file" class="form-control" id="uploaded_file" name="uploaded_file" accept=".pdf,.doc,.docx">
+                        <small class="text-muted">You can submit either text or a file</small>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> Submit Essay
+                        </button>
+                        <a href="{{ url_for('course_detail', course_id=essay.course.id) }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

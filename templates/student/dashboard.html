@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> Student Dashboard</h2>
+    <span class="text-muted">Welcome, {{ current_user.full_name }}!</span>
+</div>
+
+{% if not current_user.has_paid %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i>
+    <strong>Pending Payment:</strong> Please complete payment to enroll in courses.
+    <a href="{{ url_for('make_payment') }}" class="btn btn-sm btn-warning ms-2">Make Payment</a>
+</div>
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-book biology-icon mb-3"></i>
+                <h3>{{ courses|length }}</h3>
+                <p class="text-muted mb-0">Enrolled Courses</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-bell biology-icon mb-3"></i>
+                <h3>{{ unread_count }}</h3>
+                <p class="text-muted mb-0">Unread Notifications</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="{{ url_for('library_index') }}" class="text-decoration-none">
+                    <i class="bi bi-collection biology-icon mb-3"></i>
+                    <h3>Library</h3>
+                    <p class="text-muted mb-0">Access Resources</p>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="{{ url_for('ask_question') }}" class="text-decoration-none">
+                    <i class="bi bi-chat-left-quote biology-icon mb-3"></i>
+                    <h3>Ask</h3>
+                    <p class="text-muted mb-0">Get Teacher Answers</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-book"></i> My Courses</h5>
+            </div>
+            <div class="card-body">
+                {% if courses %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Level</th>
+                                    <th>Teacher</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                    <tr>
+                                        <td><strong>{{ course.title }}</strong></td>
+                                        <td>{{ course.target_level }}</td>
+                                        <td>{{ course.teacher.full_name }}</td>
+                                        <td>
+                                            <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-sm btn-primary">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center">
+                        <i class="bi bi-book-x biology-icon mb-3"></i>
+                        <p class="text-muted mb-3">You're not enrolled in any courses yet.</p>
+                        {% if current_user.has_paid %}
+                            <a href="{{ url_for('courses_list') }}" class="btn btn-outline-success">
+                                Browse Courses
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('make_payment') }}" class="btn btn-outline-success">
+                                Complete Payment
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bell"></i> Recent Notifications</h5>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                        <div class="mb-3 pb-3 {% if not notification.is_read %}border-start border-3 border-success{% endif %}">
+                            <strong>{{ notification.title }}</strong><br>
+                            <small class="text-muted">{{ notification.message }}</small><br>
+                            <small class="text-muted" style="font-size: 0.8rem;">
+                                {{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </small>
+                            {% if not notification.is_read %}
+                                <form method="POST" action="{{ url_for('mark_notification_read', notification_id=notification.id) }}" class="mt-2">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Mark as Read</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No notifications.</p>
+                {% endif %}
+                <div class="text-center">
+                    <a href="{{ url_for('student_notifications') }}" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <i class="bi bi-exclamation-circle biology-icon mb-4" style="font-size: 4rem;"></i>
+        <h1 class="display-4 mb-4">500</h1>
+        <h2 class="mb-4">Internal Server Error</h2>
+        <p class="text-muted mb-4">
+            Something went wrong on our end. Please try again later or contact support if the problem persists.
+        </p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i class="bi bi-house"></i> Go Home
+        </a>
+    </div>
+</div>
+{% endblock %}

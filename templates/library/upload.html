@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Upload to Library - The Eagle Biology Class{% endblock %}
+
+{% block content %}
+<style>
+    .nav-tabs .nav-link.active {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    .nav-tabs .nav-link {
+        color: #28a745;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #1e7e34;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-upload"></i> Upload to Library</h2>
+    <a href="{{ url_for('library_index') }}" class="btn btn-outline-success">
+        <i class="bi bi-arrow-left"></i> Back to Library
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="single-tab" data-bs-toggle="tab" data-bs-target="#single-upload" type="button" role="tab" aria-controls="single-upload" aria-selected="true">
+                            <i class="bi bi-file-earmark-arrow-up"></i> Single Upload
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="bulk-tab" data-bs-toggle="tab" data-bs-target="#bulk-upload" type="button" role="tab" aria-controls="bulk-upload" aria-selected="false">
+                            <i class="bi bi-file-earmark-arrow-up"></i> Bulk Upload
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <!-- Single Upload Tab -->
+                    <div class="tab-pane fade show active" id="single-upload" role="tabpanel" aria-labelledby="single-tab">
+                        <form method="POST" action="{{ url_for('upload_library_resource') }}" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Resource Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required placeholder="e.g., Cell Diagram PDF">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Brief description of the resource..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="author" class="form-label">Author</label>
+                                <input type="text" class="form-control" id="author" name="author" placeholder="e.g., Dr. Smith">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tags" class="form-label">Tags</label>
+                                <input type="text" class="form-control" id="tags" name="tags" placeholder="e.g., cell biology, diagrams, PDF">
+                                <small class="text-muted">Comma-separated tags</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="file" class="form-label">Upload File *</label>
+                                <input type="file" class="form-control" id="file" name="file" required accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.mp3,.wav,.jpg,.jpeg,.png,.gif">
+                                <small class="text-muted">Max file size: 50MB. Supported: PDF, DOC, PPT, MP4, MP3, Images</small>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-upload"></i> Upload Resource
+                                </button>
+                                <a href="{{ url_for('library_index') }}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Bulk Upload Tab -->
+                    <div class="tab-pane fade" id="bulk-upload" role="tabpanel" aria-labelledby="bulk-tab">
+                        <form method="POST" action="{{ url_for('bulk_upload_library_resources') }}" enctype="multipart/form-data" id="bulk-form">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Upload multiple resources at once. File names will be used as titles if not specified.
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="bulk_files" class="form-label">Select Multiple Files *</label>
+                                <input type="file" class="form-control" id="bulk_files" name="files" multiple required accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.mp3,.wav,.jpg,.jpeg,.png,.gif">
+                                <small class="text-muted">Max file size: 50MB per file. Supported: PDF, DOC, PPT, MP4, MP3, Images</small>
+                                <div id="file-list" class="mt-2"></div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="common_author" class="form-label">Common Author (Optional)</label>
+                                        <input type="text" class="form-control" id="common_author" name="common_author" placeholder="Apply to all files">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="common_tags" class="form-label">Common Tags (Optional)</label>
+                                        <input type="text" class="form-control" id="common_tags" name="common_tags" placeholder="Apply to all files, comma-separated">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">File Details</label>
+                                <div id="file-details" class="card-body bg-light" style="max-height: 400px; overflow-y: auto;">
+                                    <p class="text-muted">Select files above to customize details for each...</p>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg" id="bulk-submit-btn" disabled>
+                                    <i class="bi bi-upload"></i> Upload All Resources
+                                </button>
+                                <a href="{{ url_for('library_index') }}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('bulk_files').addEventListener('change', function(e) {
+        const files = this.files;
+        const fileListDiv = document.getElementById('file-list');
+        const fileDetailsDiv = document.getElementById('file-details');
+        const submitBtn = document.getElementById('bulk-submit-btn');
+        
+        fileListDiv.innerHTML = '';
+        fileDetailsDiv.innerHTML = '';
+        
+        if (files.length === 0) {
+            submitBtn.disabled = true;
+            fileListDiv.innerHTML = '<p class="text-muted">No files selected</p>';
+            return;
+        }
+        
+        submitBtn.disabled = false;
+        
+        // Show file list
+        let fileList = '<div class="list-group list-group-sm">';
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            fileList += `<div class="list-group-item">
+                <strong>${file.name}</strong> <span class="badge bg-info float-end">${sizeMB} MB</span>
+            </div>`;
+        }
+        fileList += '</div>';
+        fileListDiv.innerHTML = `<p class="text-success"><i class="bi bi-check-circle"></i> ${files.length} file(s) selected</p>` + fileList;
+        
+        // Show file details form
+        let detailsHTML = '';
+        for (let i = 0; i < files.length; i++) {
+            const fileName = files[i].name.split('.').slice(0, -1).join('.');
+            detailsHTML += `
+                <div class="mb-3 p-3 border rounded">
+                    <h6 class="mb-3"><strong>File ${i + 1}: ${files[i].name}</strong></h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control form-control-sm" name="title_${i}" placeholder="Auto: ${fileName}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Author</label>
+                            <input type="text" class="form-control form-control-sm" name="author_${i}" placeholder="Use common author or override">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control form-control-sm" name="description_${i}" rows="2" placeholder="Optional description..."></textarea>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label">Tags</label>
+                        <input type="text" class="form-control form-control-sm" name="tags_${i}" placeholder="Use common tags or override">
+                    </div>
+                </div>
+            `;
+        }
+        fileDetailsDiv.innerHTML = detailsHTML;
+    });
+</script>
+{% endblock %}
